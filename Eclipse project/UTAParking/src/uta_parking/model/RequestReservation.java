@@ -1,6 +1,7 @@
 package uta_parking.model;
 
 import java.io.Serializable;
+
 import uta_parking.data.ReservationDAO;
 
 public class RequestReservation implements Serializable{
@@ -55,7 +56,7 @@ public class RequestReservation implements Serializable{
 		this.rid = rid;
 	}
 	
-	public String getParking_are_name() {
+	public String getParking_area_name() {
 		return parking_area_name;
 	}
 	public void setParking_area_name(String parking_area_name) {
@@ -127,8 +128,10 @@ public class RequestReservation implements Serializable{
 		if (action.equals("requestReservation")) {
 		
 			errorMsgs.setStart_timeError(validateStart_time(action,request_reservation.getStart_time()));
+			
 			errorMsgs.setDurationError(validateDuration(action,request_reservation.getDuration(),
-																request_reservation.getStart_time()));			
+															request_reservation.getStart_time(), 
+															request_reservation.getUser_id()));			
 			errorMsgs.setErrorMsg(action);
 			
 		}
@@ -143,17 +146,16 @@ public class RequestReservation implements Serializable{
 		// TIME starts by the hour and is in 15 min increments
 		// Start time min is next 15 min increments
 		//start time max is 23:45
-		
-		
+		//Start time cannot overlap with existing reservations
 		
 		
 		return result;
 	}
 
 	
-	private String validateDuration(String action,String duration, String start_time) {
+	private String validateDuration(String action,String duration, String start_time, String user_id) {
 		String result="";
-		int alreadyReservedForTheDay=0;
+		int alreadyReservedForTheDay=ReservationDAO.reservedForTheDay(user_id);
 		int min = 15;
 		int max = 180 - alreadyReservedForTheDay;
 
@@ -181,12 +183,8 @@ public class RequestReservation implements Serializable{
 					else 
 						if(!maxDuration(start_time, _duration))
 							result="Start time + duration cannot exceed midnight.";
-						
-				
-				
+
 				}
-				
-				
 				
 			}
 		return result;		
